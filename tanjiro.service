@@ -1,0 +1,16 @@
+[Unit]
+Description=Manage 12v Battery Charger
+After=multi-user.target
+
+[Service]
+User=cdated
+EnvironmentFile=/usr/local/tanjiro/deploy.env
+ExecStart=/usr/local/tanjiro/venv/bin/python /usr/local/tanjiro/charger.py
+Type=notify
+WatchdogSec=600
+Restart=on-failure
+RestartSec=10
+Environment=PYTHONUNBUFFERED=true
+
+[Install]
+WantedBy=multi-user.target
