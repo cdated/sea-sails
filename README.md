@@ -6,7 +6,7 @@ the system state and to perform informed changes.
 
 Each project below essentially implements a control loop. 
 
-## Tanjiro
+# Tanjiro
 
 Maintain a bank of backup solar batteries by controlling an inverter and DC to
 DC charger based on the batteries' state of charge.
