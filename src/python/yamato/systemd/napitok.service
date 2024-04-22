@@ -1,0 +1,10 @@
+[Unit]
+Description=Run the growlab pumps daily
+After=multi-user.target
+
+[Service]
+Restart=always
+ExecStart=python /home/cdated/growlab/water_pump.py --hour 17
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,10 @@
+[Unit]
+Description=Collect temp and humidity outside the lab
+After=multi-user.target
+
+[Service]
+Restart=always
+ExecStart=python /home/cdated/growlab/outside_sensor.py
+
+[Install]
+WantedBy=multi-user.target

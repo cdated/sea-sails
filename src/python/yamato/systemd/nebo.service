@@ -1,0 +1,10 @@
+[Unit]
+Description=Manage lights and fans in growlab
+After=multi-user.target
+
+[Service]
+Restart=always
+ExecStart=python /home/cdated/growlab/lab_controls.py 2302 17
+
+[Install]
+WantedBy=multi-user.target
