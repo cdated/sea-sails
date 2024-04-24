@@ -2,7 +2,8 @@
 
 This repo contains automation for small scale projects that focus on keeping
 systems in equilibrium. These projects do periodic sensor reads and evaluate
-the system state and to perform informed changes.
+the system state. Various changes may be automatically applied to the system
+until the desired system state is achieved.
 
 Each project below essentially implements a control loop. 
 
