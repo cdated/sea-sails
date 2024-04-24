@@ -1,20 +1,19 @@
 #!/usr/bin/python
 import sys
 import time
-
 from pathlib import Path
-import RPi.GPIO as GPIO
+
 import Adafruit_DHT
+import RPi.GPIO as GPIO
 
+HEATER_PIN = 18
+LIGHT_UNO_PIN = 5
+LIGHT_DOS_PIN = 6
 
-HEATER_PIN=18
-LIGHT_UNO_PIN=5
-LIGHT_DOS_PIN=6
-
-A=13 # purple
-B=19 # yellow
-C=26 # blue
-D=16 # red
+A = 13  # purple
+B = 19  # yellow
+C = 26  # blue
+D = 16  # red
 
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)

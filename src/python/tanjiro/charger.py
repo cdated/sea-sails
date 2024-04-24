@@ -1,24 +1,23 @@
 #!/usr/bin/python
 
 import datetime
-import os
-import time
-import signal
 import json
+import os
+import signal
+import time
+
 import requests
 import sdnotify
 
 n = sdnotify.SystemdNotifier()
 n.notify("READY=1")
 
-from pytz import timezone
-
-import paho.mqtt.subscribe as subscribe
-import paho.mqtt.publish as publish
-
 import logging
-from systemd.journal import JournaldLogHandler
 
+import paho.mqtt.publish as publish
+import paho.mqtt.subscribe as subscribe
+from pytz import timezone
+from systemd.journal import JournaldLogHandler
 
 # Set up Logging
 log = logging.getLogger("nebo")
@@ -84,9 +83,7 @@ def main():
 
         log.debug("VictronPi KeepAlive sending")
         # Should be 'tanjiro.sealab.lan'
-        publish.single(
-            "R/b827eb62c15b/keepalive", hostname=TANJIRO, auth=MQTT_AUTH
-        )  # send 'keepalive' message
+        publish.single("R/b827eb62c15b/keepalive", hostname=TANJIRO, auth=MQTT_AUTH)  # send 'keepalive' message
         log.debug("VictronPi KeepAlive sent")
 
         try:
@@ -119,9 +116,7 @@ def main():
             continue
 
         log.debug("+--------------+---------------+-------------------+----------+")
-        log.debug(
-            f"| 24v {soc24:6.2f}%  |  12v {soc12:6.2f}%  |  12v Power {power_12v:4.0f}w  | PV {pv_power:4.0f}w |"
-        )
+        log.debug(f"| 24v {soc24:6.2f}%  |  12v {soc12:6.2f}%  |  12v Power {power_12v:4.0f}w  | PV {pv_power:4.0f}w |")
         log.debug("+--------------+---------------+-------------------+----------+")
 
         # Everything is pretty much dead just loop until things get better
@@ -268,9 +263,7 @@ def is_inverting():
 def get_days_since_soc24_full():
     try:
         with timeout(seconds=1):
-            msg = subscribe.simple(
-                SOC24_SEC_SINCE_FULL, hostname=TANJIRO, auth=MQTT_AUTH
-            )
+            msg = subscribe.simple(SOC24_SEC_SINCE_FULL, hostname=TANJIRO, auth=MQTT_AUTH)
     except:
         log.info("Failed to connect to venus MQTT")
         raise MqttException

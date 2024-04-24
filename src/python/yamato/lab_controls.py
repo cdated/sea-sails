@@ -4,37 +4,38 @@ import os
 import signal
 import sys
 import time
+from pathlib import Path
+
+import RPi.GPIO as GPIO
 from pytz import timezone
 
-from pathlib import Path
-import RPi.GPIO as GPIO
-
-pinlist = [4,5,6,17,27]
+pinlist = [4, 5, 6, 17, 27]
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(pinlist, GPIO.OUT)
+
+import logging
 
 import adafruit_dht
 import paho.mqtt.publish as publish
 
-import logging
-#from systemd.journal import JournaldLogHandler
+# from systemd.journal import JournaldLogHandler
 
 # Set up Logging
-log = logging.getLogger('nebo')
-#if 'SYSLOG_IDENTIFIER' in os.environ:
+log = logging.getLogger("nebo")
+# if 'SYSLOG_IDENTIFIER' in os.environ:
 #    log.addHandler(JournaldLogHandler())
-logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
+logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.DEBUG)
 
 os.chdir("/home/cdated/growlab")
 
 import requests
-from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
+
 sess = requests.Session()
-retries = Retry(total=5,
-                backoff_factor=0.1,
-                status_forcelist=[ 500, 502, 503, 504 ])
-sess.mount('http://', HTTPAdapter(max_retries=retries))
+retries = Retry(total=5, backoff_factor=0.1, status_forcelist=[500, 502, 503, 504])
+sess.mount("http://", HTTPAdapter(max_retries=retries))
+
 
 def get_lab_motion():
     resp = sess.get("http://shino.sealab.lan:1423/shelly/status/lab_motion")
@@ -44,8 +45,15 @@ def get_lab_motion():
             return True
     return False
 
+
 def set_heater(state):
-    publish.single("sealab/gaba_lamp_break/cmnd/POWER", state, client_id="growlab", auth = {"username":"cdated", "password":"County-Sibling-23"}, hostname="shino.sealab.lan")
+    publish.single(
+        "sealab/gaba_lamp_break/cmnd/POWER",
+        state,
+        client_id="growlab",
+        auth={"username": "cdated", "password": "County-Sibling-23"},
+        hostname="shino.sealab.lan",
+    )
 
 
 def signal_handler(sig, frame):
@@ -53,19 +61,20 @@ def signal_handler(sig, frame):
     GPIO.cleanup()
     sys.exit(0)
 
+
 signal.signal(signal.SIGINT, signal_handler)
 
 dhtpin = 17
-HEATER_STATE="OFF"
-HEATER_TIME=None
-FAN_PIN=27
-LIGHT_UNO_PIN=5
-LIGHT_DOS_PIN=6
+HEATER_STATE = "OFF"
+HEATER_TIME = None
+FAN_PIN = 27
+LIGHT_UNO_PIN = 5
+LIGHT_DOS_PIN = 6
 
 lon = GPIO.LOW
 loff = GPIO.HIGH
 
-#GPIO.setwarnings(False)
+# GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
 
 readings = []
@@ -113,41 +122,39 @@ while True:
 
         # Un-comment the line below to convert the temperature to Fahrenheit.
         if humidity is not None and temperature is not None:
-            temperature = temperature * 9/5.0 + 32
+            temperature = temperature * 9 / 5.0 + 32
         else:
-            log.warning('Failed to get reading. Try again!')
-
+            log.warning("Failed to get reading. Try again!")
 
         room_temp = temperature
         if temperature is None:
             continue
 
-        #try:
-            #p = Path("data_roomlab.txt")
-            #with p.open() as f:
-            #    values = f.readline()
-            #    room_temp, room_humidity = values.strip().split(',')
-            #    room_temp = float(room_temp)
-            #    room_humidity= float(room_humidity)
-            #    if temperature is None:
-            #        temperature = room_temp
-            #
-            #        humidity = room_humidity
-            #        external_reading = True
-        #except Exception as e:
+        # try:
+        # p = Path("data_roomlab.txt")
+        # with p.open() as f:
+        #    values = f.readline()
+        #    room_temp, room_humidity = values.strip().split(',')
+        #    room_temp = float(room_temp)
+        #    room_humidity= float(room_humidity)
+        #    if temperature is None:
+        #        temperature = room_temp
+        #
+        #        humidity = room_humidity
+        #        external_reading = True
+        # except Exception as e:
         #    log.error(e)
         #    continue
 
         print(f"Temp: {temperature}   Humid: {humidity}")
 
-
         # Ignore outlier data that is 20% +/- the average
         if roll_temp and roll_humid:
             p = Path("data_growlab.txt")
             p.write_text(f"{roll_temp:0.1f},{roll_humid:0.1f}")
-            if temperature < roll_temp * .8 or temperature > roll_temp * 1.2:
+            if temperature < roll_temp * 0.8 or temperature > roll_temp * 1.2:
                 continue
-            if humidity < roll_humid * .8 or humidity > roll_humid * 1.2:
+            if humidity < roll_humid * 0.8 or humidity > roll_humid * 1.2:
                 continue
 
         readings.append((temperature, humidity))
@@ -169,8 +176,7 @@ while True:
     if roll_temp <= 68:
         fan_pin = loff
 
-
-    HEATER_STATE="OFF"
+    HEATER_STATE = "OFF"
     tz = timezone("US/Eastern")
     hour = datetime.datetime.now(tz).hour
     if hour >= 9 and hour < 17:
@@ -184,9 +190,9 @@ while True:
         light_dos = loff
 
         if roll_humid >= 80 or roll_temp < 60:
-            HEATER_STATE="ON"
+            HEATER_STATE = "ON"
         else:
-            HEATER_STATE="OFF"
+            HEATER_STATE = "OFF"
     else:
         if roll_temp > 80 or roll_humid < 45:
             light_uno = loff
@@ -209,17 +215,17 @@ while True:
         # also toggle the second light every 10 mins
         if external_reading and roll_temp >= 64:
             fan_pin = lon
-            if int(time_mins/10) % 2 != 0:
+            if int(time_mins / 10) % 2 != 0:
                 light_dos = loff
 
-    #try:
+    # try:
     #    if get_lab_motion():
     #        motion_detected = True
     #        light_uno = loff
     #        light_dos = loff
     #    else:
     #        motion_detected = False
-    #except:
+    # except:
     #    motion_detected = False
 
     if cnt == 1:
@@ -236,7 +242,9 @@ while True:
     light_uno_state = "  " if GPIO.input(LIGHT_UNO_PIN) == True else "L1"
     light_dos_state = "  " if GPIO.input(LIGHT_DOS_PIN) == True else "L2"
 
-    print(f'Temp={temperature:0.1f}*  Humidity={humidity:0.1f}%  Avg={roll_temp}* {roll_humid}%  | {fan} | {heater} | {light_uno_state} | {light_dos_state}')
+    print(
+        f"Temp={temperature:0.1f}*  Humidity={humidity:0.1f}%  Avg={roll_temp}* {roll_humid}%  | {fan} | {heater} | {light_uno_state} | {light_dos_state}"
+    )
 
     data_iteration = True
     time.sleep(15)
@@ -245,14 +253,13 @@ while True:
     if not data_iteration:
         continue
 
-
-    prom_data = f'growlab_temp {roll_temp:0.1f}\n'
-    prom_data += f'growlab_humidity {roll_humid:0.1f}\n'
+    prom_data = f"growlab_temp {roll_temp:0.1f}\n"
+    prom_data += f"growlab_humidity {roll_humid:0.1f}\n"
     prom_data += f'growlab_heater {0 if heater=="  " else 1}\n'
     prom_data += f'growlab_fan {0 if fan=="  " else 1}\n'
     prom_data += f'growlab_light_uno {0 if light_uno_state =="  " else 1}\n'
     prom_data += f'growlab_light_dos {0 if light_dos_state =="  " else 1}\n'
-    prom_data += f'growlab_external_reading {1 if external_reading else 0}\n'
+    prom_data += f"growlab_external_reading {1 if external_reading else 0}\n"
 
     dp = Path("data_pumps.txt")
     with dp.open() as f:
@@ -265,7 +272,9 @@ while True:
     p = Path("/var/lib/node_exporter/textfile_collector/growlab.prom")
     p.write_text(prom_data)
 
-    log.info(f'Temp={temperature:0.1f}*  Humidity={humidity:0.1f}%  Avg={roll_temp}* {roll_humid}%  | {fan} | {heater} | {light_uno_state} | {light_dos_state}')
+    log.info(
+        f"Temp={temperature:0.1f}*  Humidity={humidity:0.1f}%  Avg={roll_temp}* {roll_humid}%  | {fan} | {heater} | {light_uno_state} | {light_dos_state}"
+    )
 
     if motion_detected:
         time.sleep(15)
