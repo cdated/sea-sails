@@ -1,0 +1,9 @@
+[GLOBAL]
+pants_version = "2.20.0"
+backend_packages = [
+  "pants.backend.python",
+  "pants.backend.python.lint.black",
+]
+
+[python]
+interpreter_constraints = ['==3.11.*']
