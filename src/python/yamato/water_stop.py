@@ -1,9 +1,5 @@
 #!/usr/bin/python
-import sys
-import time
-from pathlib import Path
 
-import Adafruit_DHT
 import RPi.GPIO as GPIO
 
 HEATER_PIN = 18

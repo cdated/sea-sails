@@ -87,11 +87,12 @@ def main():
     cur_mins = int(time.strftime("%M"))
     dow = time.strftime("%a")
     p = Path("data_growlab.txt")
+    values = None
     try:
         with p.open() as f:
             values = f.readline()
             temperature, humidity = values.strip().split(",")
-    except:
+    except IOError:
         print(f"Error: Incorrect growlab data -- {values}")
     else:
         print(f"{dow} - {cur_hour:02}:{cur_mins:02}  {temperature}* {humidity}%")

@@ -123,7 +123,7 @@ def main(hour, stop):
             with p.open() as f:
                 values = f.readline()
                 temperature, humidity = values.strip().split(",")
-        except:
+        except IOError:
             log.error(f"Error: Incorrect growlab data -- {values}")
         log.info(f"{dow} - {cur_hour:02}:{cur_mins:02}  {temperature}* {humidity}%")
 

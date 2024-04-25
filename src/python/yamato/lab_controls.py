@@ -1,24 +1,24 @@
 #!/usr/bin/env python
 import datetime
+import logging
 import os
 import signal
 import sys
 import time
 from pathlib import Path
 
+import adafruit_dht
+import paho.mqtt.publish as publish
+import requests
 import RPi.GPIO as GPIO
 from pytz import timezone
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 pinlist = [4, 5, 6, 17, 27]
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(pinlist, GPIO.OUT)
 
-import logging
-
-import adafruit_dht
-import paho.mqtt.publish as publish
-
-# from systemd.journal import JournaldLogHandler
 
 # Set up Logging
 log = logging.getLogger("nebo")
@@ -28,9 +28,6 @@ logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.DEBUG)
 
 os.chdir("/home/cdated/growlab")
 
-import requests
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
 
 sess = requests.Session()
 retries = Retry(total=5, backoff_factor=0.1, status_forcelist=[500, 502, 503, 504])
@@ -237,10 +234,10 @@ while True:
         GPIO.output(LIGHT_UNO_PIN, light_uno)
         GPIO.output(LIGHT_DOS_PIN, light_dos)
 
-    fan = "  " if GPIO.input(FAN_PIN) == True else "++"
+    fan = "  " if GPIO.input(FAN_PIN) is True else "++"
     heater = "  " if HEATER_STATE == "OFF" else "^^"
-    light_uno_state = "  " if GPIO.input(LIGHT_UNO_PIN) == True else "L1"
-    light_dos_state = "  " if GPIO.input(LIGHT_DOS_PIN) == True else "L2"
+    light_uno_state = "  " if GPIO.input(LIGHT_UNO_PIN) is True else "L1"
+    light_dos_state = "  " if GPIO.input(LIGHT_DOS_PIN) is True else "L2"
 
     print(
         f"Temp={temperature:0.1f}*  Humidity={humidity:0.1f}%  Avg={roll_temp}* {roll_humid}%  | {fan} | {heater} | {light_uno_state} | {light_dos_state}"

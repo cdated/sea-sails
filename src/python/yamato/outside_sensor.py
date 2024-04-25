@@ -21,7 +21,6 @@ import logging
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-import os
 import sys
 import time
 from pathlib import Path
@@ -52,7 +51,9 @@ elif len(sys.argv) == 1:
     pin = "4"
 else:
     print("Usage: sudo ./Adafruit_DHT.py [11|22|2302] <GPIO pin number>")
-    print("Example: sudo ./Adafruit_DHT.py 2302 4 - Read from an AM2302 connected to GPIO pin #4")
+    print(
+        "Example: sudo ./Adafruit_DHT.py 2302 4 - Read from an AM2302 connected to GPIO pin #4"
+    )
     sys.exit(1)
 
 
@@ -99,7 +100,9 @@ while True:
         prom_data = f"{roll_temp:0.1f},{roll_humid:0.1f}"
         p.write_text(prom_data)
 
-        log.info(f"Temp={temperature:0.1f}*  Humidity={humidity:0.1f}%  Avg={roll_temp}* {roll_humid}%  | {heater}")
+        log.info(
+            f"Temp={temperature:0.1f}*  Humidity={humidity:0.1f}%  Avg={roll_temp}* {roll_humid}%  | {heater}"
+        )
     else:
         log.warning("Failed to get reading. Try again!")
 
