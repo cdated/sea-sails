@@ -9,3 +9,4 @@ backend_packages = [
 
 [python]
 interpreter_constraints = ['==3.11.*']
+enable_resolves = true
