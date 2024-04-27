@@ -2,11 +2,36 @@
 pants_version = "2.20.0"
 backend_packages = [
   "pants.backend.python",
+  "pants.backend.python.lint.autoflake",
+  "pants.backend.python.lint.docformatter",
   "pants.backend.python.lint.black",
   "pants.backend.python.lint.isort",
   "pants.backend.python.lint.flake8",
 ]
 
 [python]
-interpreter_constraints = ['==3.11.*']
+interpreter_constraints = ['==3.9.*']
 enable_resolves = true
+default_resolve = "python-default"
+
+[python.resolves]
+black = "3rdparty/python/black.lock"
+docformatter = "3rdparty/python/docformatter.lock"
+flake8 = "3rdparty/python/flake8.lock"
+isort = "3rdparty/python/isort.lock"
+python-default = "3rdparty/python/default.lock"
+
+[docformatter]
+args = ["--wrap-summaries=100", "--wrap-descriptions=100"]
+install_from_resolve = "docformatter"
+
+[flake8]
+args = ["--max-line-length 100"]
+
+[export]
+resolve = [
+  "black", 
+  "flake8",
+  "isort",
+  "python-default",
+]

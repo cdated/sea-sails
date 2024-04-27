@@ -1,4 +1,11 @@
 python_requirement(
-    name="Flake8-pyproject",
-    requirements=["Flake8-pyproject>=1.2.0,<2"],
+  name="docformatter",
+  requirements=["docformatter"],
+  resolve="docformatter",
+)
+
+python_requirement(
+  name="flake8",
+  requirements=["flake8"],
+  resolve="flake8",
 )
