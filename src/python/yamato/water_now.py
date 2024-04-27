@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
+from pathlib import Path
 import signal
 import sys
 import time
-from pathlib import Path
 
 import click
 import RPi.GPIO as GPIO

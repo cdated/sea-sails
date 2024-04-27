@@ -7,12 +7,12 @@ import os
 import signal
 import time
 
+from pytz import timezone
+from systemd.journal import JournaldLogHandler
 import paho.mqtt.publish as publish
 import paho.mqtt.subscribe as subscribe
 import requests
 import sdnotify
-from pytz import timezone
-from systemd.journal import JournaldLogHandler
 
 n = sdnotify.SystemdNotifier()
 n.notify("READY=1")
@@ -117,7 +117,8 @@ def main():
 
         log.debug("+--------------+---------------+-------------------+----------+")
         log.debug(
-            f"| 24v {soc24:6.2f}%  |  12v {soc12:6.2f}%  |  12v Power {power_12v:4.0f}w  | PV {pv_power:4.0f}w |"
+            f"|  24v {soc24:6.2f}%  |  12v {soc12:6.2f}%  "
+            f"|  12v Power {power_12v:4.0f}w  | PV {pv_power:4.0f}w |"
         )
         log.debug("+--------------+---------------+-------------------+----------+")
 
@@ -241,7 +242,7 @@ def state_12v_charger():
             x = json.loads(x.text)
             return x.get("state") == "on"
 
-    except:
+    except requests.exceptions.RequestException:
         log.info("Failed to get 12v charger state")
         return False
 
@@ -265,10 +266,8 @@ def is_inverting():
 def get_days_since_soc24_full():
     try:
         with timeout(seconds=1):
-            msg = subscribe.simple(
-                SOC24_SEC_SINCE_FULL, hostname=TANJIRO, auth=MQTT_AUTH
-            )
-    except:
+            msg = subscribe.simple(SOC24_SEC_SINCE_FULL, hostname=TANJIRO, auth=MQTT_AUTH)
+    except requests.exceptions.RequestException:
         log.info("Failed to connect to venus MQTT")
         raise MqttException
 
@@ -288,7 +287,7 @@ def get_state_of_charge(battery):
     try:
         with timeout(seconds=1):
             msg = subscribe.simple(battery, hostname=TANJIRO, auth=MQTT_AUTH)
-    except:
+    except requests.exceptions.RequestException:
         log.info("Failed to connect to venus MQTT")
         raise MqttException
 
@@ -303,7 +302,7 @@ def get_inverter_load():
     try:
         with timeout(seconds=1):
             msg = subscribe.simple(INVERTER_LOAD, hostname=TANJIRO, auth=MQTT_AUTH)
-    except:
+    except requests.exceptions.RequestException:
         log.info("Failed to connect to venus MQTT")
         return 0
         raise MqttException
@@ -319,7 +318,7 @@ def get_pv_power():
     try:
         with timeout(seconds=1):
             msg = subscribe.simple(PV_POWER, hostname=TANJIRO, auth=MQTT_AUTH)
-    except:
+    except requests.exceptions.RequestException:
         log.info("Failed to connect to venus MQTT")
         raise MqttException
 

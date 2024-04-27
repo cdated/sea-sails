@@ -1,19 +1,20 @@
 #!/usr/bin/env python
+from pathlib import Path
 import datetime
 import logging
 import os
 import signal
 import sys
 import time
-from pathlib import Path
 
-import adafruit_dht
-import paho.mqtt.publish as publish
-import requests
-import RPi.GPIO as GPIO
 from pytz import timezone
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+import adafruit_dht
+import board
+import paho.mqtt.publish as publish
+import requests
+import RPi.GPIO as GPIO
 
 pinlist = [4, 5, 6, 17, 27]
 GPIO.setmode(GPIO.BCM)
@@ -87,8 +88,6 @@ motion_detected = False
 
 log.info("Getting initial reading...")
 
-import board
-
 ts = 0
 loop_ts = 0
 cnt = 0
@@ -107,13 +106,13 @@ while True:
             humidity = dhtdev.humidity
             temperature = dhtdev.temperature
             external_reading = False
-        except:
+        except Exception:
             try:
                 dhtdev = adafruit_dht.DHT22(board.D4)
                 humidity = dhtdev.humidity
                 temperature = dhtdev.temperature
                 external_reading = True
-            except:
+            except Exception:
                 humidity = None
                 temperature = None
 
@@ -240,7 +239,9 @@ while True:
     light_dos_state = "  " if GPIO.input(LIGHT_DOS_PIN) is True else "L2"
 
     print(
-        f"Temp={temperature:0.1f}*  Humidity={humidity:0.1f}%  Avg={roll_temp}* {roll_humid}%  | {fan} | {heater} | {light_uno_state} | {light_dos_state}"
+        f"Temp={temperature:0.1f}*  Humidity={humidity:0.1f}%  "
+        f"Avg={roll_temp}* {roll_humid}%  | {fan} | {heater} | "
+        f"{light_uno_state} | {light_dos_state}"
     )
 
     data_iteration = True
@@ -270,7 +271,9 @@ while True:
     p.write_text(prom_data)
 
     log.info(
-        f"Temp={temperature:0.1f}*  Humidity={humidity:0.1f}%  Avg={roll_temp}* {roll_humid}%  | {fan} | {heater} | {light_uno_state} | {light_dos_state}"
+        f"Temp={temperature:0.1f}*  Humidity={humidity:0.1f}%  "
+        f"Avg={roll_temp}* {roll_humid}%  | {fan} | {heater} | "
+        f"{light_uno_state} | {light_dos_state}"
     )
 
     if motion_detected:

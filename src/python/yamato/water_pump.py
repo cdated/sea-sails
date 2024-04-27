@@ -1,16 +1,16 @@
 #!/usr/bin/python
 
+from pathlib import Path
 import datetime
 import logging
 import os
 import signal
 import sys
 import time
-from pathlib import Path
 
+from pytz import timezone
 import click
 import RPi.GPIO as GPIO
-from pytz import timezone
 
 # from systemd.journal import JournaldLogHandler
 

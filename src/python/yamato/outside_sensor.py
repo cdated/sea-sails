@@ -12,6 +12,7 @@
 # The above copyright notice and this permission notice shall be included in all
 # copies or substantial portions of the Software.
 
+from pathlib import Path
 import logging
 
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -23,7 +24,6 @@ import logging
 # SOFTWARE.
 import sys
 import time
-from pathlib import Path
 
 import RPi.GPIO as GPIO
 
@@ -51,9 +51,7 @@ elif len(sys.argv) == 1:
     pin = "4"
 else:
     print("Usage: sudo ./Adafruit_DHT.py [11|22|2302] <GPIO pin number>")
-    print(
-        "Example: sudo ./Adafruit_DHT.py 2302 4 - Read from an AM2302 connected to GPIO pin #4"
-    )
+    print("Example: sudo ./Adafruit_DHT.py 2302 4 - Read from an AM2302 connected to GPIO pin #4")
     sys.exit(1)
 
 
@@ -100,8 +98,10 @@ while True:
         prom_data = f"{roll_temp:0.1f},{roll_humid:0.1f}"
         p.write_text(prom_data)
 
+        temp = temperature
+        humid = humidity
         log.info(
-            f"Temp={temperature:0.1f}*  Humidity={humidity:0.1f}%  Avg={roll_temp}* {roll_humid}%  | {heater}"
+            f"Temp={temp:0.1f}*  Humidity={humid:0.1f}%  Avg={roll_temp}* {roll_humid}%  | {heater}"
         )
     else:
         log.warning("Failed to get reading. Try again!")
