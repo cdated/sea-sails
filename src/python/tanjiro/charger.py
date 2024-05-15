@@ -66,6 +66,8 @@ def main():
     # log.debug("-- Turning off charger --")
     # control_12v_charger(state_on=False)
     charging = state_12v_charger()
+    inverting = is_inverting()
+
     log.debug(f"-- Charging State: {charging} --")
 
     ran_once = False
@@ -89,6 +91,10 @@ def main():
         try:
             log.debug("Getting 24v SOC from MQTT")
             soc24 = get_state_of_charge(SOC24V)
+            if soc24 >= 35:
+                soc24charged = True
+            else:
+                soc24charged = False
 
             log.debug("Getting 24v days since full from MQTT")
             days_since_soc24_full = get_days_since_soc24_full()
@@ -102,31 +108,47 @@ def main():
                 log.debug("12v SOC below 15%, enabling charger")
                 x = control_12v_charger(state_on=True)
                 charging = True
+                soc12low = True
+            else:
+                soc12low = False
 
             if is_inverting():
+                inverting = True
                 log.debug("Getting inverter load")
-                power_12v = get_inverter_load()
+                load_12v = get_inverter_load()
                 if soc12 <= 15:
                     log.debug("Disabling Inverter")
                     toggle_inverter()
             else:
-                power_12v = 0
+                inverting = False
+                load_12v = 0
         except MqttException:
             time.sleep(1)
             continue
 
-        log.debug("+--------------+---------------+-------------------+----------+")
         log.debug(
-            f"|  24v {soc24:6.2f}%  |  12v {soc12:6.2f}%  "
-            f"|  12v Power {power_12v:4.0f}w  | PV {pv_power:4.0f}w |"
+            "+-------------------+---------------+------------------+------------+"
         )
-        log.debug("+--------------+---------------+-------------------+----------+")
+        log.debug(
+            f"|    24v {soc24:6.2f}%    |  12v {soc12:6.2f}%  "
+            f"|  12v load {load_12v:4.0f}w  |  PV {pv_power:4.0f}w  |"
+        )
+        log.debug(
+            "+-------------------+---------------+------------------+------------+"
+        )
+        log.debug(
+            f"|   24v charged {int(soc24charged)}   |  charging  {int(charging)}  |   inverting  {int(inverting)}   |"
+        )
+        log.debug("+-------------------+---------------+------------------+")
+        log.debug(f"| full {days_since_soc24_full:.1f} days ago |")
+        log.debug("+-------------------+")
+        time.sleep(10)
 
-        # Everything is pretty much dead just loop until things get better
-        if soc12 > 15 and soc24 <= 15:
-            log.debug("24v is low and 12v is charged enough")
-            x = control_12v_charger(state_on=False)
-            charging = False
+        if not soc24charged:
+            log.debug("24v is too low to run 12v charger")
+            if charging:
+                x = control_12v_charger(state_on=False)
+                charging = False
             continue
 
         tz = timezone("US/Eastern")
@@ -140,7 +162,7 @@ def main():
 
         inverting = is_inverting()
 
-        if days_since_soc24_full >= 60 and soc12 >= 90:
+        if days_since_soc24_full >= 30 and soc12 >= 90:
             log.debug("SOC24 needs a balance change")
             log.debug("Disabling inverter and 12v charger")
             if inverting:
@@ -152,27 +174,16 @@ def main():
                 log.debug(f"-- Charging State: {charging} --")
             continue
 
-        if soc24 >= 35 and soc12 >= 80 and not inverting:
+        if soc24charged and soc12 >= 80 and not inverting:
             log.debug("Enabling Inverter")
             toggle_inverter()
 
         charging = state_12v_charger()
         log.debug(f"-- Charging State: {charging} --")
 
-        # Don't charge 12v if the 24v is too low
-        if soc24 <= 10:
-            soc24charged = False
-            if charging:
-                log.debug("-- Turning off charger --")
-                x = control_12v_charger(state_on=False)
-                print(x)
-                charging = False
-            continue
-        elif soc24 >= 30:
-            soc24charged = True
-
         log.debug(f"Is daytime: {daytime}")
         log.debug(f"Is soc24charged: {soc24charged}")
+        log.debug(f"Is soc12low: {soc12low}")
         log.debug(f"Is inverting: {inverting}")
         log.debug(f"Is charging: {charging}")
 
@@ -188,7 +199,7 @@ def main():
         # Charge the 12v if the SOC have reached 10%
         # or if the 24v is low only discharge to 20% since further charging is less likely
         if soc24charged and not charging:
-            if (soc24 <= 35 and soc12 <= 20) or soc12 <= 10:
+            if soc12low:
                 log.debug("-- Turning on charger --")
                 x = control_12v_charger(state_on=True)
                 print(x)
@@ -266,7 +277,9 @@ def is_inverting():
 def get_days_since_soc24_full():
     try:
         with timeout(seconds=1):
-            msg = subscribe.simple(SOC24_SEC_SINCE_FULL, hostname=TANJIRO, auth=MQTT_AUTH)
+            msg = subscribe.simple(
+                SOC24_SEC_SINCE_FULL, hostname=TANJIRO, auth=MQTT_AUTH
+            )
     except requests.exceptions.RequestException:
         log.info("Failed to connect to venus MQTT")
         raise MqttException
