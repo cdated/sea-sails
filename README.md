@@ -7,12 +7,12 @@ until the desired system state is achieved.
 
 Each project below essentially implements a control loop. 
 
-# Tanjiro
+# [Tanjiro](src/python/tanjiro)
 
 Maintain a bank of backup solar batteries by controlling an inverter and DC to
 DC charger based on the batteries' state of charge.
 
-# Yamato
+# [Yamato](src/python/yamato)
 
 Maintain the ideal temperature and humidity for indoor plants. Control vent
 fans, UV lights, a dehumidifier, and water pumps.
