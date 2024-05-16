@@ -156,7 +156,7 @@ def main():
                 charging = control_12v_charger(state_on=False)
                 log.debug(f"-- Charging State: {charging} --")
 
-        if soc24charged and soc12charged and not inverting:
+        if soc12charged and not inverting:
             log.debug("Enabling Inverter")
             toggle_inverter()
 
