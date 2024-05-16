@@ -107,6 +107,7 @@ def main():
 
             log.debug("Getting 12v SOC from MQTT")
             soc12 = get_state_of_charge(SOC12V)
+            soc12charged = soc12 >= 80
             soc12low = soc12 <= 15
 
             inverting = is_inverting()
@@ -139,12 +140,12 @@ def main():
         time.sleep(10)
 
         if charging:
-            if soc24low or (not daytime and soc12 >= 80):
+            if soc24low or (not daytime and soc12charged):
                 log.debug("-- Turning off charger --")
                 control_12v_charger(state_on=False)
                 charging = False
 
-        if days_since_soc24_full >= 30 and soc12 >= 90:
+        if days_since_soc24_full >= 30 and soc12charged:
             log.debug("SOC24 needs a balance change")
             log.debug("Disabling inverter and 12v charger")
             if inverting:
@@ -155,7 +156,7 @@ def main():
                 charging = control_12v_charger(state_on=False)
                 log.debug(f"-- Charging State: {charging} --")
 
-        if soc24charged and soc12 >= 80 and not inverting:
+        if soc24charged and soc12charged and not inverting:
             log.debug("Enabling Inverter")
             toggle_inverter()
 
@@ -164,6 +165,7 @@ def main():
 
         log.debug(f"Is daytime: {daytime}")
         log.debug(f"Is soc12low: {soc12low}")
+        log.debug(f"Is soc12charged: {soc12charged}")
         log.debug(f"Is soc24low: {soc24low}")
         log.debug(f"Is soc24charged: {soc24charged}")
         log.debug(f"Is inverting: {inverting}")
@@ -173,8 +175,7 @@ def main():
         # but only if the inverter conditions are true
         if daytime and soc24charged and not charging:
             log.debug("-- Turning on charger for daylight--")
-            x = control_12v_charger(state_on=True)
-            print(x)
+            control_12v_charger(state_on=True)
             charging = True
 
         # Charge the 12v if the SOC have reached 10%
@@ -182,8 +183,7 @@ def main():
         if soc24charged and not charging:
             if soc12low:
                 log.debug("-- Turning on charger --")
-                x = control_12v_charger(state_on=True)
-                print(x)
+                control_12v_charger(state_on=True)
                 charging = True
 
 
