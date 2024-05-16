@@ -126,18 +126,15 @@ def main():
             time.sleep(1)
             continue
 
-        log.debug(
-            "+-------------------+---------------+------------------+------------+"
-        )
+        log.debug("+-------------------+---------------+------------------+------------+")
         log.debug(
             f"|    24v {soc24:6.2f}%    |  12v {soc12:6.2f}%  "
             f"|  12v load {load_12v:4.0f}w  |  PV {pv_power:4.0f}w  |"
         )
+        log.debug("+-------------------+---------------+------------------+------------+")
         log.debug(
-            "+-------------------+---------------+------------------+------------+"
-        )
-        log.debug(
-            f"|   24v charged {int(soc24charged)}   |  charging  {int(charging)}  |   inverting  {int(inverting)}   |"
+            f"|   24v charged {int(soc24charged)}   |  charging  {int(charging)}  "
+            f"|   inverting  {int(inverting)}   |"
         )
         log.debug("+-------------------+---------------+------------------+")
         log.debug(f"| full {days_since_soc24_full:.1f} days ago |")
@@ -277,9 +274,7 @@ def is_inverting():
 def get_days_since_soc24_full():
     try:
         with timeout(seconds=1):
-            msg = subscribe.simple(
-                SOC24_SEC_SINCE_FULL, hostname=TANJIRO, auth=MQTT_AUTH
-            )
+            msg = subscribe.simple(SOC24_SEC_SINCE_FULL, hostname=TANJIRO, auth=MQTT_AUTH)
     except requests.exceptions.RequestException:
         log.info("Failed to connect to venus MQTT")
         raise MqttException
