@@ -109,13 +109,14 @@ def main():
             soc12 = get_state_of_charge(SOC12V)
             soc12charged = soc12 >= 80
             soc12low = soc12 <= 15
+            soc12critical = soc12 <= 10
 
             inverting = is_inverting()
 
             if inverting:
                 log.debug("Getting inverter load")
                 load_12v = get_inverter_load()
-                if soc12low:
+                if soc12critical:
                     log.debug("Disabling Inverter")
                     toggle_inverter()
             else:
@@ -124,17 +125,17 @@ def main():
             time.sleep(1)
             continue
 
-        log.debug("+--------------------+---------------+------------------+------------+")
+        log.debug("+--------------------+---------------+-------------------+------------+")
         log.debug(
             f"|     24v {soc24:6.2f}%    |  12v {soc12:6.2f}%  "
-            f"|  12v load {load_12v:4.0f}w  |  PV {pv_power:4.0f}w  |"
+            f"|  12v power {load_12v:4.0f}w  |  PV {pv_power:4.0f}w  |"
         )
-        log.debug("+--------------------+---------------+------------------+------------+")
+        log.debug("+--------------------+---------------+-------------------+------------+")
         log.debug(
             f"|   24v charged  {int(soc24charged)}   |  charging  {int(charging)}  "
-            f"|   inverting  {int(inverting)}   |"
+            f"|    inverting  {int(inverting)}   |"
         )
-        log.debug("+--------------------+---------------+------------------+")
+        log.debug("+--------------------+---------------+-------------------+")
         log.debug(f"| full {days_since_soc24_full:4.1f} days ago |")
         log.debug("+--------------------+")
         time.sleep(10)
@@ -290,6 +291,9 @@ def get_state_of_charge(battery):
 
 
 def get_inverter_load():
+    """Get power from and to battery with positive values representing charge
+    and negative values being drain from inverter load.
+    """
     try:
         with timeout(seconds=1):
             msg = subscribe.simple(INVERTER_LOAD, hostname=TANJIRO, auth=MQTT_AUTH)
