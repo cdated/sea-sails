@@ -1,6 +1,8 @@
 [Unit]
 Description=Manage 12v Battery Charger
 After=multi-user.target
+StartLimitBurst=3
+StartLimitIntervalSec=300
 
 [Service]
 User=cdated
