@@ -36,6 +36,7 @@ HA_AUTH = os.environ["HA_AUTH"]
 mqtt_user = os.environ["MQTT_USER"]
 mqtt_pass = os.environ["MQTT_PASS"]
 MQTT_AUTH = {"username": mqtt_user, "password": mqtt_pass}
+NET_TIMEOUT_SECS = 30
 
 # The Vicron Venus raspberry pi
 TANJIRO = os.environ["TANJIRO"]
@@ -222,7 +223,7 @@ def control_12v_charger(state_on):
 
 def state_12v_charger():
     try:
-        with timeout(seconds=5):
+        with timeout(seconds=NET_TIMEOUT_SECS):
             log.debug("-- Getting 12v charger state --")
             url = f"{HOMEASSISTANT}/api/states/switch.12v_charger_remote"
             headers = {
@@ -257,7 +258,7 @@ def is_inverting():
 
 def get_days_since_soc24_full():
     try:
-        with timeout(seconds=1):
+        with timeout(seconds=NET_TIMEOUT_SECS):
             msg = subscribe.simple(SOC24_SEC_SINCE_FULL, hostname=TANJIRO, auth=MQTT_AUTH)
     except requests.exceptions.RequestException:
         log.info("Failed to connect to venus MQTT")
@@ -277,7 +278,7 @@ def get_days_since_soc24_full():
 
 def get_state_of_charge(battery):
     try:
-        with timeout(seconds=1):
+        with timeout(seconds=NET_TIMEOUT_SECS):
             msg = subscribe.simple(battery, hostname=TANJIRO, auth=MQTT_AUTH)
     except requests.exceptions.RequestException:
         log.info("Failed to connect to venus MQTT")
@@ -291,11 +292,10 @@ def get_state_of_charge(battery):
 
 
 def get_inverter_load():
-    """Get power from and to battery with positive values representing charge
-    and negative values being drain from inverter load.
-    """
+    """Get power from and to battery with positive values representing charge and negative values
+    being drain from inverter load."""
     try:
-        with timeout(seconds=1):
+        with timeout(seconds=NET_TIMEOUT_SECS):
             msg = subscribe.simple(INVERTER_LOAD, hostname=TANJIRO, auth=MQTT_AUTH)
     except requests.exceptions.RequestException:
         log.info("Failed to connect to venus MQTT")
@@ -311,7 +311,7 @@ def get_inverter_load():
 
 def get_pv_power():
     try:
-        with timeout(seconds=1):
+        with timeout(seconds=NET_TIMEOUT_SECS):
             msg = subscribe.simple(PV_POWER, hostname=TANJIRO, auth=MQTT_AUTH)
     except requests.exceptions.RequestException:
         log.info("Failed to connect to venus MQTT")
