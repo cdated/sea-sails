@@ -1,0 +1,72 @@
+groups:
+  - name: Primary Alerts
+    rules:
+      # Alert for any instance that is unreachable for >30 minutes.
+      - alert: Instance Down
+        expr: up == 0
+        for: 30m
+        labels:
+          severity: page
+        annotations:
+          summary: "Instance {{ $labels.instance }} down"
+          description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 5 minutes."
+
+      - alert: Host Out Of Disk Space
+        expr: (node_filesystem_avail_bytes * 100) / node_filesystem_size_bytes < 10 and ON (instance, device, mountpoint) node_filesystem_readonly == 0
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: Host out of disk space (instance {{ $labels.instance }})
+          description: "Disk is almost full (< 10% left)\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+      - alert: Host High Cpu Load
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[10m])) * 100) > 90
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: Host high CPU load (instance {{ $labels.instance }})
+          description: "CPU load is > 90%\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+  - name: Growlab
+    rules:
+      - alert: Nebo Service
+        expr: node_systemd_unit_state{name="nebo.service",state="active"} == 0
+        for: 5m
+        annotations:
+          summary: "Instance {{ $labels.instance }} is down"
+          description: "{{ $labels.instance }} of job {{ $labels.job }} is down."
+
+      - alert: Napitok Service
+        expr: node_systemd_unit_state{name="napitok.service",state="active"} == 0
+        for: 5m
+        annotations:
+          summary: "Instance {{ $labels.instance }} is down"
+          description: "{{ $labels.instance }} of job {{ $labels.job }} is down."
+
+      - alert: Vneshniy Service
+        expr: node_systemd_unit_state{name="vneshniy.service",state="active"} == 0
+        for: 5m
+        annotations:
+          summary: "Instance {{ $labels.instance }} is down"
+          description: "{{ $labels.instance }} of job {{ $labels.job }} is down."
+
+  - name: HVAC
+    rules:
+      - alert: MQTT Service
+        expr: node_systemd_unit_state{name="mosquitto.service",state="active"} == 0
+        for: 5m
+        annotations:
+          summary: "Instance {{ $labels.instance }} is down"
+          description: "{{ $labels.instance }} of job {{ $labels.job }} is down."
+
+  - name: Solar
+    rules:
+      # Solar charge controller
+      - alert: Tanjiro Service
+        expr: node_systemd_unit_state{name="tanjiro.service",state="active"} == 0
+        for: 5m
+        annotations:
+          summary: "Instance {{ $labels.instance }} is down"
+          description: "{{ $labels.instance }} of job {{ $labels.job }} is down."
